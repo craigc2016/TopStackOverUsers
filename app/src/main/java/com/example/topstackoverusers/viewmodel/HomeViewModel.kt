@@ -42,6 +42,11 @@ class HomeViewModel(
                                 item
                             }
 
+                            val initialItems = usersResponse.stackOverItems.map { item ->
+                                userCache[item.userId] ?: item.copy(profileImage = null)
+                            }
+                            _uiState.value = UiState.Success(initialItems)
+
                             // Cache updated user
                             userCache[updatedItem.userId] = updatedItem
 
