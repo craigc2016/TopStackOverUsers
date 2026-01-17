@@ -2,6 +2,8 @@ package com.example.topstackoverusers.di
 
 import com.example.topstackoverusers.data.remote.ApiService
 import com.example.topstackoverusers.data.remote.AppRoutes
+import com.example.topstackoverusers.data.remote.ImageService
+import com.example.topstackoverusers.data.remote.ImageServiceImpl
 import com.example.topstackoverusers.data.repository.StackOverFlowRepository
 import com.example.topstackoverusers.data.repository.StackOverFlowRepositoryImpl
 import com.example.topstackoverusers.viewmodel.HomeViewModel
@@ -32,8 +34,12 @@ class AppContainer {
         retrofit.create(ApiService::class.java)
     }
 
+    val imageService: ImageService by lazy {
+        ImageServiceImpl()
+    }
+
     val repository: StackOverFlowRepository by lazy {
-        StackOverFlowRepositoryImpl(apiService)
+        StackOverFlowRepositoryImpl(apiService, imageService)
     }
 
     val homeViewModel: HomeViewModel by lazy {

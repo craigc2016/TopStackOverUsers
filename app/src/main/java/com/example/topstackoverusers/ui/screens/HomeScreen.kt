@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,12 +48,22 @@ fun HomeScreen() {
         verticalArrangement = Arrangement.Center
     ) {
         when(val uiState = state) {
+            is UiState.Loading -> LoadIndicator()
             is UiState.Success -> {
                 HomeContent(state = uiState)
             }
             is UiState.Error -> Text(text = "Error")
-            is UiState.Loading -> Text(text = "Loading")
         }
+    }
+}
+
+@Composable
+private fun LoadIndicator() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
     }
 }
 
@@ -86,12 +97,22 @@ private fun ListItem(
         onClick = { }
     ) {
         Row{
-            Image(
-               painter = painterResource(id = R.drawable.placeholder),
-                contentDescription = "Profile picture",
-            )
+            item.profileImage?.let {
+                Image(
+                    bitmap = item.profileImage,
+                    contentDescription = "Profile picture",
+                )
+            } ?: run {
+                Image(
+                    painter = painterResource(id = R.drawable.placeholder),
+                    contentDescription = "Profile picture",
+                )
+            }
 
-            Column(modifier = Modifier.padding(10.dp)) {
+            Column(
+                modifier = Modifier.padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 10.dp, alignment = Alignment.CenterVertically)
+            ) {
                 Text(text = item.displayName)
                 Text(text = item.reputation.toString())
             }
