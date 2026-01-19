@@ -1,11 +1,17 @@
 package com.example.topstackoverusers.di
 
+import android.app.Application
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import com.example.topstackoverusers.data.remote.ApiService
 import com.example.topstackoverusers.data.remote.AppRoutes
 import com.example.topstackoverusers.data.remote.ImageService
 import com.example.topstackoverusers.data.remote.ImageServiceImpl
 import com.example.topstackoverusers.data.repository.StackOverFlowRepository
 import com.example.topstackoverusers.data.repository.StackOverFlowRepositoryImpl
+import com.example.topstackoverusers.data.repository.UserPreferencesDataStore
 import com.example.topstackoverusers.viewmodel.HomeViewModel
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -14,12 +20,20 @@ import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 
 
-
-class AppContainer {
+class AppContainer(application: Application) {
 
     private val json = Json {
-        ignoreUnknownKeys = true // important for APIs that return extra fields
+        ignoreUnknownKeys = true
     }
+
+    val dataStore: DataStore<Preferences> =
+        PreferenceDataStoreFactory.create(
+            produceFile = {
+                application.applicationContext.preferencesDataStoreFile("user_prefs")
+            }
+        )
+
+    val userPreferencesDataStore = UserPreferencesDataStore(dataStore)
 
     @OptIn(ExperimentalSerializationApi::class)
     private val retrofit: Retrofit by lazy {
@@ -39,7 +53,7 @@ class AppContainer {
     }
 
     val repository: StackOverFlowRepository by lazy {
-        StackOverFlowRepositoryImpl(apiService, imageService)
+        StackOverFlowRepositoryImpl(apiService, imageService, userPreferencesDataStore)
     }
 
     val homeViewModel: HomeViewModel by lazy {

@@ -4,5 +4,5 @@ import android.app.Application
 import com.example.topstackoverusers.di.AppContainer
 
 class StackOverFlowApplication : Application() {
-    val appContainer by lazy { AppContainer() }
+    val appContainer by lazy { AppContainer(application = this) }
 }

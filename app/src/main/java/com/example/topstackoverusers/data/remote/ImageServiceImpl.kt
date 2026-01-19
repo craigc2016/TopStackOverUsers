@@ -18,6 +18,12 @@ class ImageServiceImpl : ImageService {
     override fun loadImage(url: String): Bitmap? {
         return try {
             val connection = URL(url).openConnection()
+            connection.connectTimeout = 5000
+            connection.readTimeout = 5000
+            connection.useCaches = true
+            connection.doInput = true
+            connection.connect()
+
             connection.getInputStream().use {
                 BitmapFactory.decodeStream(it)
             }

@@ -6,14 +6,15 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
-data class StackOverFlowItem(
+data class StackOverFlowUser(
     @SerialName("user_id")
     val userId: Int,
     @SerialName("display_name")
-    val displayName: String = "",
+    val displayName: String? = null,
     @SerialName("profile_image")
     val profileImageUrl: String,
     val reputation: Int,
     @Transient
-    val profileImage: ImageBitmap? = null
+    val profileImage: ImageBitmap? = null,
+    val isFollowed: Boolean = false
 )

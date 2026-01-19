@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class StackOverFlowResponse(
     @SerialName("items")
-    val stackOverItems: List<StackOverFlowItem>
+    val stackOverItems: List<StackOverFlowUser>
 )
