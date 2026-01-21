@@ -5,15 +5,16 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import com.example.topstackoverusers.data.local.UserPreferencesDataStore
 import com.example.topstackoverusers.data.remote.ApiService
 import com.example.topstackoverusers.data.remote.AppRoutes
 import com.example.topstackoverusers.data.remote.ImageService
 import com.example.topstackoverusers.data.remote.ImageServiceImpl
 import com.example.topstackoverusers.data.repository.StackOverFlowRepository
 import com.example.topstackoverusers.data.repository.StackOverFlowRepositoryImpl
-import com.example.topstackoverusers.data.repository.UserPreferencesDataStore
 import com.example.topstackoverusers.viewmodel.HomeViewModel
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -25,6 +26,8 @@ class AppContainer(application: Application) {
     private val json = Json {
         ignoreUnknownKeys = true
     }
+
+    private val ioDispatcher = Dispatchers.IO
 
     val dataStore: DataStore<Preferences> =
         PreferenceDataStoreFactory.create(
@@ -57,6 +60,6 @@ class AppContainer(application: Application) {
     }
 
     val homeViewModel: HomeViewModel by lazy {
-        HomeViewModel(repository)
+        HomeViewModel(repository, ioDispatcher)
     }
 }

@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">TopStackOverUsers</string>
+
+    <string name="error_message">Error Loading Data Check Internet Connection and Try Again</string>
+    <string name="username">Username: %s</string>
+    <string name="reputation">Reputation: %s</string>
 </resources>

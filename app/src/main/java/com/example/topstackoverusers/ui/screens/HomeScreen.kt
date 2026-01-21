@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -29,12 +30,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.topstackoverusers.R
 import com.example.topstackoverusers.StackOverFlowApplication
-import com.example.topstackoverusers.data.remote.models.StackOverFlowUser
 import com.example.topstackoverusers.viewmodel.UiState
+import com.example.topstackoverusers.viewmodel.UserUiModel
 
 @Composable
 fun HomeScreen() {
@@ -61,7 +63,34 @@ fun HomeScreen() {
                     viewModel.followUser(userId, isFollowed)
                 } )
             }
-            is UiState.Error -> Text(text = "Error")
+            is UiState.Error -> ErrorView(retry = { viewModel.onRetry() })
+        }
+    }
+}
+
+@Composable
+private fun ErrorView(retry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(space = 10.dp, alignment = Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(id = R.string.error_message),
+            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+            color = Color.Black
+        )
+
+        Button(
+            onClick = {
+                retry()
+            }
+        ) {
+            Text(
+                text = "Try Again",
+                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                color = Color.Black
+            )
         }
     }
 }
@@ -102,17 +131,16 @@ private fun HomeContent(
 
 @Composable
 private fun ListItem(
-    item: StackOverFlowUser,
+    item: UserUiModel,
     onFollowClick: (userId: Int, isFollowed: Boolean) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp),
-        shape = MaterialTheme.shapes.large,
-        onClick = { }
+        shape = MaterialTheme.shapes.large
     ) {
-        Row{
+        Row(modifier = Modifier.padding(10.dp)){
             item.profileImage?.let {
                 Image(
                     bitmap = item.profileImage,
@@ -129,8 +157,8 @@ private fun ListItem(
                 modifier = Modifier.padding(10.dp),
                 verticalArrangement = Arrangement.spacedBy(space = 10.dp, alignment = Alignment.CenterVertically)
             ) {
-                Text(text = item.displayName ?: "")
-                Text(text = item.reputation.toString())
+                Text(text = String.format(stringResource(id = R.string.username), item.displayName))
+                Text(text = String.format(stringResource(id = R.string.reputation), item.reputation.toString()))
             }
 
             Spacer(modifier = Modifier.weight(1f))

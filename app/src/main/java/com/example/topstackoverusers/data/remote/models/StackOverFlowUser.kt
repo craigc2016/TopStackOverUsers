@@ -1,9 +1,8 @@
 package com.example.topstackoverusers.data.remote.models
 
-import androidx.compose.ui.graphics.ImageBitmap
+import com.example.topstackoverusers.viewmodel.UserUiModel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 
 @Serializable
 data class StackOverFlowUser(
@@ -14,7 +13,12 @@ data class StackOverFlowUser(
     @SerialName("profile_image")
     val profileImageUrl: String,
     val reputation: Int,
-    @Transient
-    val profileImage: ImageBitmap? = null,
-    val isFollowed: Boolean = false
 )
+
+fun StackOverFlowUser.toUiModel(): UserUiModel =
+    UserUiModel(
+        userId = userId,
+        displayName = displayName ?: "Unknown",
+        reputation = reputation,
+        profileImageUrl = profileImageUrl
+    )

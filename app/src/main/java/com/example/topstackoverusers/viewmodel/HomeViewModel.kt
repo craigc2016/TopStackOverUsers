@@ -1,52 +1,49 @@
 package com.example.topstackoverusers.viewmodel
 
 import android.util.Log
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.topstackoverusers.data.remote.models.StackOverFlowUser
+import com.example.topstackoverusers.data.remote.models.toUiModel
 import com.example.topstackoverusers.data.repository.StackOverFlowRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withContext
 
 class HomeViewModel(
-    private val repository: StackOverFlowRepository
+    private val repository: StackOverFlowRepository,
+    private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
-    private val _errorState: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
-    private val _userCache: MutableStateFlow<Map<Int, StackOverFlowUser>> = MutableStateFlow(emptyMap())
+    private val _isLoading = MutableStateFlow(false)
+    private val _errorState = MutableStateFlow<Throwable?>(null)
+    private val _userCache: MutableStateFlow<Map<Int, UserUiModel>> = MutableStateFlow(emptyMap())
 
     val uiState: StateFlow<UiState> = combine(
         _userCache,
         repository.followedState,
-        _errorState
-    ) { cache, followedState, errorState ->
+        _errorState,
+        _isLoading
+    ) { cache, followedIds, error, isLoading ->
+
         val list = cache.values.map { item ->
             item.copy(
-                isFollowed = followedState[item.userId] == true
+                isFollowed = item.userId in followedIds
             )
         }
+
         when {
-            errorState -> UiState.Error
-            list.isEmpty() -> UiState.Loading
-            else -> UiState.Success(list)
+            isLoading -> UiState.Loading
+            error != null -> UiState.Error
+            else -> UiState.Success(data = list)
         }
     }
-        .catch {
-            emit(UiState.Error)
-        }
         .stateIn(
             viewModelScope,
             SharingStarted.Lazily,
@@ -55,40 +52,42 @@ class HomeViewModel(
 
     fun loadUsers() {
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 val usersResponse = repository.getTopUsers()
-                // Initialize the cache with API users
-                val initialMap = usersResponse.stackOverItems.associateBy { it.userId }
-                _userCache.value = initialMap
+                // Map the response network model to the UI version one.
+                _userCache.value = usersResponse.stackOverItems.associateBy(
+                    keySelector = { it.userId },
+                    valueTransform = { it.toUiModel() }
+                )
 
-
-                // Load images in parallel
                 supervisorScope {
                     usersResponse.stackOverItems.map { item ->
-                        async {
-                            try {
-                                loadImage(userId = item.userId)
-                            } catch (e: Exception) {
-                                _errorState.value = true
-                                Log.e(TAG, "Image load failed", e)
-                                item
-                            }
+                        launch(ioDispatcher) {
+                            loadImage(item.userId)
                         }
-                    }.awaitAll()
+                    }
                 }
-
             } catch (e: Exception) {
-                _errorState.value = true
-                Log.e(TAG, "API call failed", e)
+                _errorState.value = e
+                Log.e(TAG, "Failed to load users", e)
+            } finally {
+                _isLoading.value = false
             }
         }
     }
 
-    fun followUser(userId: Int, isFollowed: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+    fun onRetry() {
+        _errorState.value = null
+        loadUsers()
+    }
+
+
+    fun followUser(userId: Int, isFollowed: Boolean) = viewModelScope.launch(ioDispatcher) {
         try {
             repository.toggleFollowedState(userId, isFollowed)
-        } catch (_: Exception) {
-            _errorState.value = true
+        } catch (e : Exception) {
+            _errorState.value = e
         }
     }
 
@@ -98,12 +97,11 @@ class HomeViewModel(
         // If image is already loaded, skip
         if (cachedItem.profileImage != null) return
 
-        val bitmap = withContext(Dispatchers.IO) {
-            repository.loadImage(cachedItem.profileImageUrl)?.asImageBitmap()
-        }
+        val bitmap = repository.loadImage(cachedItem.profileImageUrl)
 
-        // Create a new object with the bitmap
+        // Update the cache with the loaded image bitmap
         val updatedItem = cachedItem.copy(profileImage = bitmap)
+
         _userCache.update { cache ->
             cache + (userId to updatedItem)
         }
@@ -115,7 +113,17 @@ class HomeViewModel(
 }
 
 sealed class UiState() {
-    data class Success(val data: List<StackOverFlowUser>) : UiState()
+    data class Success(val data: List<UserUiModel>) : UiState()
     object Error : UiState()
     object Loading : UiState()
 }
+
+data class UserUiModel(
+    val userId: Int,
+    val displayName: String,
+    val reputation: Int,
+    val profileImageUrl: String,
+    val profileImage: ImageBitmap? = null,
+    val isFollowed: Boolean = false
+)
+
