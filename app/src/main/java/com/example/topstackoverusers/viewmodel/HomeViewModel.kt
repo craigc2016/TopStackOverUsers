@@ -32,12 +32,14 @@ class HomeViewModel(
         _isLoading
     ) { cache, followedIds, error, isLoading ->
 
+        // update the follow state
         val list = cache.values.map { item ->
             item.copy(
                 isFollowed = item.userId in followedIds
             )
         }
 
+        // set the Ui state
         when {
             isLoading -> UiState.Loading
             error != null -> UiState.Error
