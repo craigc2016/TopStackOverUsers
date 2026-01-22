@@ -14,6 +14,11 @@ Due to the restriction on using third-party libraries, the project uses a manual
 
 Unit tests where created for the view model to test the success and error states of loading users and images. Fakes where created for repository, decoder and image service since there was a restriction on a mocking library testing the success state of image loading was not possible because of its dependacy on the Android system. 
 
+# Steps to install
+- If you have access to GitHub you can fork the project and install and run through Android studio.
+- On request I can email a zip of the project which can be ran from Android studio.
+- On request can provide an APK file install on a device.
+
 # Architecture
 - **UI Layer (Jetpack Compose)**
   - Contains composable functions responsible for rendering the UI
