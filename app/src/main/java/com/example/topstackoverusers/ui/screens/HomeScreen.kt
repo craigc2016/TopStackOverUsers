@@ -31,6 +31,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.topstackoverusers.R
@@ -71,14 +73,22 @@ fun HomeScreen() {
 @Composable
 private fun ErrorView(retry: () -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(space = 10.dp, alignment = Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Image(
+            painterResource(id = R.drawable.ic_no_connection),
+            contentDescription = "No internet image"
+        )
         Text(
             text = stringResource(id = R.string.error_message),
             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-            color = Color.Black
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            color = Color.Black,
         )
 
         Button(

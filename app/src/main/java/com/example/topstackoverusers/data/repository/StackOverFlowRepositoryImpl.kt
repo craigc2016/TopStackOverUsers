@@ -1,7 +1,5 @@
 package com.example.topstackoverusers.data.repository
 
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import com.example.topstackoverusers.data.local.FollowState
 import com.example.topstackoverusers.data.local.UserPreferencesRepository
 import com.example.topstackoverusers.data.remote.ApiService
@@ -11,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface StackOverFlowRepository{
     suspend fun getTopUsers(): StackOverFlowResponse
-    suspend fun loadImage(url: String) :ImageBitmap?
+    suspend fun loadImage(url: String) : ByteArray
 
     val followedState: Flow<Set<Int>>
     suspend fun toggleFollowedState(userId: Int, isFollowed: Boolean)
@@ -27,8 +25,8 @@ class StackOverFlowRepositoryImpl(
         return apiService.getTopUsers()
     }
 
-    override suspend fun loadImage(url: String) : ImageBitmap? {
-        return imageService.loadImage(url)?.asImageBitmap()
+    override suspend fun loadImage(url: String) : ByteArray {
+        return imageService.loadImage(url)
     }
 
     override val followedState: Flow<Set<Int>>

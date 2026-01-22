@@ -1,11 +1,12 @@
 package com.example.topstackoverusers.viewmodel
 
-import android.util.Log
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.topstackoverusers.data.remote.models.toUiModel
 import com.example.topstackoverusers.data.repository.StackOverFlowRepository
+import com.example.topstackoverusers.domain.LoadImageUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +19,7 @@ import kotlinx.coroutines.supervisorScope
 
 class HomeViewModel(
     private val repository: StackOverFlowRepository,
+    private val loadImageUseCase: LoadImageUseCase,
     private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -48,7 +50,7 @@ class HomeViewModel(
     }
         .stateIn(
             viewModelScope,
-            SharingStarted.Lazily,
+            SharingStarted.Eagerly,
             UiState.Loading
         )
 
@@ -72,7 +74,6 @@ class HomeViewModel(
                 }
             } catch (e: Exception) {
                 _errorState.value = e
-                Log.e(TAG, "Failed to load users", e)
             } finally {
                 _isLoading.value = false
             }
@@ -80,8 +81,13 @@ class HomeViewModel(
     }
 
     fun onRetry() {
-        _errorState.value = null
-        loadUsers()
+        if (_userCache.value.isEmpty()) {
+            _isLoading.value = false
+            _errorState.value = null
+            loadUsers()
+        } else {
+            _errorState.value = null
+        }
     }
 
 
@@ -99,10 +105,16 @@ class HomeViewModel(
         // If image is already loaded, skip
         if (cachedItem.profileImage != null) return
 
-        val bitmap = repository.loadImage(cachedItem.profileImageUrl)
+
+        val bitmap = try {
+            loadImageUseCase(url = cachedItem.profileImageUrl)
+        } catch (_: Exception) {
+            // Images that fail to load will use a place holder ok to be set to null
+            null
+        }
 
         // Update the cache with the loaded image bitmap
-        val updatedItem = cachedItem.copy(profileImage = bitmap)
+        val updatedItem = cachedItem.copy(profileImage = bitmap?.asImageBitmap())
 
         _userCache.update { cache ->
             cache + (userId to updatedItem)

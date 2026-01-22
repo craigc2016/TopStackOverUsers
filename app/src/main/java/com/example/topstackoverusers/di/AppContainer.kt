@@ -12,6 +12,8 @@ import com.example.topstackoverusers.data.remote.ImageService
 import com.example.topstackoverusers.data.remote.ImageServiceImpl
 import com.example.topstackoverusers.data.repository.StackOverFlowRepository
 import com.example.topstackoverusers.data.repository.StackOverFlowRepositoryImpl
+import com.example.topstackoverusers.domain.ImageDecoder
+import com.example.topstackoverusers.domain.LoadImageUseCase
 import com.example.topstackoverusers.viewmodel.HomeViewModel
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.coroutines.Dispatchers
@@ -59,7 +61,19 @@ class AppContainer(application: Application) {
         StackOverFlowRepositoryImpl(apiService, imageService, userPreferencesDataStore)
     }
 
+    val imageDecoder by lazy {
+        ImageDecoder()
+    }
+
+    val loadImageUseCase by lazy {
+        LoadImageUseCase(repository, imageDecoder)
+    }
+
     val homeViewModel: HomeViewModel by lazy {
-        HomeViewModel(repository, ioDispatcher)
+        HomeViewModel(
+            repository = repository,
+            loadImageUseCase = loadImageUseCase,
+            ioDispatcher = ioDispatcher
+        )
     }
 }
