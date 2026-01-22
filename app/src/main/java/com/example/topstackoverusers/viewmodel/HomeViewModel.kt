@@ -66,7 +66,7 @@ class HomeViewModel(
                 )
 
                 supervisorScope {
-                    usersResponse.stackOverItems.map { item ->
+                    usersResponse.stackOverItems.forEach { item ->
                         launch(ioDispatcher) {
                             loadImage(item.userId)
                         }

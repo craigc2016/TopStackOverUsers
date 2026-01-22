@@ -14,8 +14,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -25,7 +23,6 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
 
-    private var testDispatcher: TestDispatcher = StandardTestDispatcher()
     private lateinit var fakeImageService: FakeImageService
     private lateinit var fakeImageDecoder: FakeImageDecoder
     private lateinit var repository: FakeStackOverFlowRepository
@@ -93,6 +90,7 @@ class HomeViewModelTest {
 
         assertTrue(viewModel.uiState.value is UiState.Loading)
 
+        // verify success state
         val state = viewModel.uiState.first { it is UiState.Error }
         assertTrue(state is UiState.Error)
 
@@ -111,7 +109,7 @@ class HomeViewModelTest {
             viewModel.uiState.collect()
         }
 
-        // First load → Error
+        // First load will throw Error
         viewModel.loadUsers()
         advanceUntilIdle()
 
@@ -152,6 +150,7 @@ class HomeViewModelTest {
         val state = viewModel.uiState.first { it is UiState.Success }
         assertTrue(state is UiState.Success)
 
+        // verify updated state
         val firstUser = (state as UiState.Success).data.first()
         assertEquals("John Doe", firstUser.displayName)
         assertNull(firstUser.profileImage)
@@ -203,11 +202,11 @@ class HomeViewModelTest {
         viewModel.followUser(userId = 1, isFollowed = false)
 
         advanceUntilIdle()
+        // verify updated state
         success = viewModel.uiState.value as UiState.Success
         val updatedUser2 = success.data.first { it.userId == 2 }
         assertTrue(!updatedUser2.isFollowed)
     }
-
 
 
     private fun createViewModel(
