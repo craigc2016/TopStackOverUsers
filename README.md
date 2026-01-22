@@ -12,7 +12,7 @@ The project follows Clean Architecture principles by encapsulating image loading
 
 Due to the restriction on using third-party libraries, the project uses a manual dependency injection approach. An AppContainer is responsible for creating, configuring, and providing application-level dependencies.
 
-Unit tests where created for the view model to test the success and error states of loading users and images. Fakes where created for repository, decoder and image service since there was a restriction on a mocking library testing the success state of image loading was not possible because of its dependacy on the Android system. 
+Unit tests where created for the view model to test the success and error states of loading users and images. Fakes where created for repository, decoder and image service since there was a restriction on a mocking library testing the success state of image loading was not possible because of its dependacy on the Android system. A mock server was added through a test library to valid the api response valid and empty states.
 
 # Steps to install
 - If you have access to GitHub you can fork the project and install and run through Android studio.
@@ -57,6 +57,7 @@ This separation ensures scalability, testability, and clean code.
   - Navigation Compose
 - **Kotlin Coroutines & Flow** - Asynchronous programming and reactive streams
 - **Retrofit** - Networking
+  - Mock Server to unit test response
 - **Kotlin Serialization 3** - For serializing JSON responses into data models
 - **OkHttp** - HTTP client
 - **Material 3** - UI components and theming
